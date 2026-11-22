@@ -2,7 +2,32 @@
   const PATNA = [25.6208, 85.1725]; // near NIT Patna and the Gandhi Ghat stretch
   const COLORS = { high: '#c8372d', medium: '#e08a00', low: '#2f8f5b', cleaned: '#5b6f9a' };
   const LABEL = { plastic: 'Plastic dump', garbage: 'Solid garbage', drain: 'Open drain' };
-  const DEPTS = ['Patna Municipal Corporation', 'Bihar State Pollution Control Board', 'Namami Gange district committee'];
+  // Edit names and emails here. Replace the example emails with the real department emails.
+  const DEPTS = [
+    { name: 'Patna Municipal Corporation', email: 'pmc.example@gmail.com' },
+    { name: 'Bihar State Pollution Control Board', email: 'bspcb.example@gmail.com' },
+    { name: 'Namami Gange district committee', email: 'namami.example@gmail.com' },
+  ];
+  const deptEmail = (name) => (DEPTS.find((d) => d.name === name) || {}).email || '';
+
+  function mailtoFor(r, deptName) {
+    const sev = severityOf(r.score);
+    const subject = `Ganga pollution hotspot (${sev} severity): ${LABEL[r.category]}, Patna`;
+    const body = [
+      'Hello,', '',
+      'A pollution hotspot has been reported on the Ganga riverbank in Patna.', '',
+      `Type: ${LABEL[r.category]}`,
+      `Severity: ${sev} (score ${r.score})`,
+      `Near busy ghat: ${r.footfall ? 'Yes' : 'No'}`,
+      `Details: ${r.description || 'No description'}`,
+      `Location: https://www.google.com/maps?q=${r.lat},${r.lng}`,
+      `Reported on: ${new Date(r.createdAt).toLocaleString()}`, '',
+      `Photo and full details: ${location.origin}`, '',
+      'Please arrange cleanup and send us the proof of cleanup.', '',
+      'Regards,', 'Ganga Micro-Hotspot Portal, NIT Patna',
+    ].join('\n');
+    return `mailto:${deptEmail(deptName)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
   const $ = (s) => document.querySelector(s);
   const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -59,10 +84,10 @@
       const t = tier(r);
       let act = '';
       if (r.status === 'new') {
-        act = `<select aria-label="Department" data-dept="${r.id}">${DEPTS.map((d) => `<option>${esc(d)}</option>`).join('')}</select>
+        act = `<select aria-label="Department" data-dept="${r.id}">${DEPTS.map((d) => `<option>${esc(d.name)}</option>`).join('')}</select>
                <button class="btn sm" data-dispatch="${r.id}">Send to department</button>`;
       } else if (r.status === 'dispatched') {
-        act = `<button class="btn sm" data-proof="${r.id}">Add cleanup proof</button>`;
+        act = `<button class="btn sm" data-email="${r.id}">Email again</button> <button class="btn sm" data-proof="${r.id}">Add cleanup proof</button>`;
       } else act = 'Closed';
       return `<tr>
         <td><span class="sev ${t}">${t === 'cleaned' ? 'cleaned' : severityOf(r.score)}</span><small>score ${r.score}</small></td>
@@ -114,7 +139,13 @@
     const d = e.target.dataset;
     if (d.dispatch) {
       const dept = document.querySelector(`[data-dept="${d.dispatch}"]`).value;
-      Store.update(d.dispatch, { status: 'dispatched', dept, dispatchedAt: Date.now() });
+      const r = reports.find((x) => x.id === d.dispatch);
+      Store.update(d.dispatch, { status: 'dispatched', dept, dispatchedAt: Date.now() }).catch((err) => alert(err.message));
+      if (r) window.location.href = mailtoFor(r, dept);
+    }
+    if (d.email) {
+      const r = reports.find((x) => x.id === d.email);
+      if (r) window.location.href = mailtoFor(r, r.dept);
     }
     if (d.proof) { proofFor = d.proof; $('#proof-form').reset(); $('#proof-dialog').showModal(); }
   });

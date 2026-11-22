@@ -90,7 +90,7 @@ Open http://localhost:8000. Do not open `index.html` by double-clicking; Firebas
 
 ## Current limitations and future scope
 
-- "Send to department" records the department and status in the database; it does **not** yet send an email or SMS to the authority.
+- "Send to department" records the department and status in the database; Send to department opens a pre-filled email.
 - Department names in `js/app.js` (`DEPTS`) should be confirmed with the real local bodies.
 - Planned: email or SMS dispatch to departments, report export (PDF/CSV), duplicate-report detection, and a public cleanup history.
 
