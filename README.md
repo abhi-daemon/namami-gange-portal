@@ -95,13 +95,6 @@ Open http://localhost:8000. Do not open `index.html` by double-clicking; Firebas
 - Planned: email or SMS dispatch to departments, report export (PDF/CSV), duplicate-report detection, and a public cleanup history.
 
 ## Team
-
-| Name | Roll No. |
-|---|---|
 | Abhishek Verma | 2606039 |
-| Nand Kishor | 2606051 |
-| Shiva Nand Gupta | 2606022 |
-| Rahul Kumar | 2606036 |
-| Aditya Kumar | 2606012 |
 
 National Institute of Technology Patna
